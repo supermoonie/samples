@@ -4,12 +4,19 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.github.supermoonie</groupId>
+    <parent>
+        <groupId>com.github.supermoonie</groupId>
+        <artifactId>samples-all</artifactId>
+        <version>1.0-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
+    </parent>
+
     <artifactId>rocketmq-parent</artifactId>
-    <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
     <modules>
         <module>../rocketmq-samples</module>
+        <module>../rocketmq-spring-boot-samples</module>
     </modules>
 
     <name>rocketmq-parent</name>
