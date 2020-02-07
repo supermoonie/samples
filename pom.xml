@@ -11,6 +11,7 @@
     <modules>
         <module>rocketmq/rocketmq-parent</module>
         <module>redis/redis-parent</module>
+        <module>dubbo/dubbo-parent</module>
     </modules>
 
 </project>
