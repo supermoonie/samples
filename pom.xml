@@ -13,6 +13,7 @@
         <module>redis/redis-parent</module>
         <module>dubbo/dubbo-parent</module>
         <module>httpclient/httpclient-parent</module>
+        <module>java/java-parent</module>
     </modules>
 
 </project>

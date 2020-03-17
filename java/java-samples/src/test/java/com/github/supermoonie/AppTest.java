@@ -1,18 +1,20 @@
 package com.github.supermoonie;
 
-import org.junit.Test;
-
 import static org.junit.Assert.assertTrue;
+
+import org.junit.Test;
 
 /**
  * Unit test for simple App.
  */
-public class AppTest {
+public class AppTest 
+{
     /**
-     * Rigorous Java8Tester :-)
+     * Rigorous Test :-)
      */
     @Test
-    public void shouldAnswerWithTrue() {
-        assertTrue(true);
+    public void shouldAnswerWithTrue()
+    {
+        assertTrue( true );
     }
 }
