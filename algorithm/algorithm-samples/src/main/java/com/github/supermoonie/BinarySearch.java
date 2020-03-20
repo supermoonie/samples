@@ -8,8 +8,8 @@ public class BinarySearch {
 
     public static void main(String[] args) {
         int[] list = new int[]{1, 3, 5, 7, 9};
-        int index = BinarySearch.search(list, 5);
-        System.out.println(index);
+        System.out.println(BinarySearch.search(list, 5));
+        System.out.println(BinarySearch.search(list, 9));
     }
 
     private static int search(int[] list, int key) {
