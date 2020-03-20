@@ -15,6 +15,7 @@
         <module>httpclient/httpclient-parent</module>
         <module>java/java-parent</module>
         <module>algorithm/algorithm-parent</module>
+        <module>patterns/patterns-parent</module>
     </modules>
 
 </project>
