@@ -18,12 +18,14 @@ public class SimpleSelectSort {
         for (int i = 0; i < list.length; i ++) {
             int min = list[i];
             int minIndex = i;
+            // 1. 查找最小值
             for (int j = i + 1; j < list.length; j ++) {
                 if (list[j] < min) {
                     minIndex = j;
                     min = list[j];
                 }
             }
+            // 2. 与最小值互换位置
             if (minIndex != i) {
                 list[minIndex] = list[i];
                 list[i] = min;
