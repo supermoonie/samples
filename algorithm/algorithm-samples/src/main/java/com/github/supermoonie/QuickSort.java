@@ -11,8 +11,7 @@ public class QuickSort {
 
     public static void main(String[] args) {
         Random random = new Random();
-//        int[] randoms = random.ints(6, 1, 10).distinct().toArray();
-        int[] randoms = new int[]{7, 6, 4, 9};
+        int[] randoms = random.ints(10, 1, 100).distinct().toArray();
         System.out.println(Arrays.toString(randoms));
         sort(randoms, 0, randoms.length - 1);
         System.out.println(Arrays.toString(randoms));
@@ -22,9 +21,28 @@ public class QuickSort {
         if (low >= high) {
             return;
         }
-        int pa = partition(list, low, high);
+        int pa = partition_1(list, low, high);
         sort(list, low, pa - 1);
         sort(list, pa + 1, high);
+    }
+
+    private static int partition_1(int[] list, int low, int high) {
+        int pivot = list[high];
+        int i = low - 1;
+        for (int j = low; j < high; j ++) {
+            if (list[j] <= pivot) {
+                i += 1;
+                swap(list, i, j);
+            }
+        }
+        swap(list, i + 1, high);
+        return i + 1;
+    }
+
+    private static void swap(int[] list, int i, int j) {
+        int temp = list[i];
+        list[i] = list[j];
+        list[j] = temp;
     }
 
     private static int partition(int[] list, int low, int high) {
