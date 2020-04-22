@@ -13,9 +13,14 @@ public class SearchMaximumSubArray {
 
     public static void main(String[] args) {
         Random random = new Random();
-        int[] randoms = random.ints(10, -50, 50).distinct().toArray();
+//        int[] randoms = random.ints(10, -50, 50).distinct().toArray();
+//        int[] randoms = {-26, -27, -4, 2, -1, 46, 34, -39};
+        int[] randoms = {-30, 22, -34, 18, -24, 2, 21, 38, -4};
+//        int[] randoms = {-30, 22, -34};
         System.out.println(Arrays.toString(randoms));
         System.out.println(searchMaxSubArrayByTwoFor(randoms));
+//        System.out.println(searchMaxCrossingSubArray(randoms, 0, randoms.length >>> 1, randoms.length));
+        System.out.println(searchMaxSubArrayByRecursive(randoms, 0, randoms.length - 1));
     }
 
     /**
@@ -40,10 +45,47 @@ public class SearchMaximumSubArray {
         return new MaximumSubArray(left, right, max);
     }
 
+    private static int counter = 1;
+
+    private static MaximumSubArray searchMaxSubArrayByRecursive(int[] array, int low, int high) {
+        if (low == high) {
+            System.out.println("cyc: " + counter + " [ " + array[low] + " ]" + " low: " + low + " high: " + high);
+            return new MaximumSubArray(low, high, array[low]);
+        }
+        int[] tempArr = new int[high - low + 1];
+        System.arraycopy(array, low, tempArr, 0, high - low + 1);
+        System.out.println("cyc: " + counter + " " + Arrays.toString(tempArr) + " low: " + low + " high: " + high);
+        int mid = (low + high) / 2;
+        MaximumSubArray leftArray = searchMaxSubArrayByRecursive(array, low, mid);
+        System.out.println("cyc: " + counter + " left: " + leftArray);
+        MaximumSubArray rightArray = searchMaxSubArrayByRecursive(array, mid + 1, high);
+        System.out.println("cyc: " + counter + " right: " + rightArray);
+        MaximumSubArray crossingArray = searchMaxCrossingSubArray(array, low, mid, high);
+        System.out.println("cyc: " + counter + " cross: " + crossingArray);
+        counter = counter + 1;
+        if (leftArray.sum >= crossingArray.sum && leftArray.sum >= rightArray.sum) {
+            return leftArray;
+        } else if (leftArray.sum <= rightArray.sum && crossingArray.sum <= rightArray.sum) {
+            return rightArray;
+        } else {
+            return crossingArray;
+        }
+    }
+
+    /**
+     * 查找跨越中点的最大字数组
+     *
+     * @param array 数组
+     * @param low   low
+     * @param mid   mid
+     * @param high  high
+     * @return 跨越中点的最大字数组
+     */
     private static MaximumSubArray searchMaxCrossingSubArray(int[] array, int low, int mid, int high) {
-        int leftSum = array[low];
-        int sum = 0;
-        int maxLeftIndex = -1;
+        int[] tempArr = new int[high - low + 1];
+        System.arraycopy(array, low, tempArr, 0, high - low + 1);
+        System.out.println("cyc: " + counter + " " + Arrays.toString(tempArr) + " low: " + low + " mid: " + mid + " high: " + high);
+        int leftSum = array[low], rightSum = array[mid + 1], sum = 0, maxLeftIndex = low, maxRightIndex = mid;
         for (int i = mid; i >= low; i--) {
             sum = sum + array[i];
             if (sum > leftSum) {
@@ -51,7 +93,15 @@ public class SearchMaximumSubArray {
                 maxLeftIndex = i;
             }
         }
-        return null;
+        sum = 0;
+        for (int i = mid + 1; i <= high; i ++) {
+            sum = sum + array[i];
+            if (sum > rightSum) {
+                rightSum = sum;
+                maxRightIndex = i;
+            }
+        }
+        return new MaximumSubArray(maxLeftIndex, maxRightIndex, leftSum + rightSum);
     }
 
     static class MaximumSubArray {
