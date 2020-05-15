@@ -21,17 +21,17 @@ public class HeapSort {
         buildMaxHeap(arr);
         for (int i = arr.length - 1; i > 0; i--) {
             swap(arr, 0, i);
-            maxHeapify(arr, 0, i);
+            maxHeap(arr, 0, i);
         }
     }
 
     private static void buildMaxHeap(int[] arr) {
         for (int i = arr.length / 2; i >= 0; i--) {
-            maxHeapify(arr, i, arr.length);
+            maxHeap(arr, i, arr.length);
         }
     }
 
-    private static void maxHeapify(int[] arr, int i, int high) {
+    private static void maxHeap(int[] arr, int i, int high) {
         int l, r, largest = i;
         if (0 == i) {
             l = 1;
@@ -48,7 +48,7 @@ public class HeapSort {
         }
         if (largest != i) {
             swap(arr, i, largest);
-            maxHeapify(arr, largest, high);
+            maxHeap(arr, largest, high);
         }
     }
 
