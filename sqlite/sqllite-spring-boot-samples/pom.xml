@@ -3,17 +3,17 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>redis-parent</artifactId>
+        <artifactId>sqlite-parent</artifactId>
         <groupId>com.github.supermoonie</groupId>
         <version>1.0-SNAPSHOT</version>
-        <relativePath>../redis-parent/pom.xml</relativePath>
+        <relativePath>../sqlite-parent/pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>redis-spring-boot-samples</artifactId>
+    <artifactId>sqllite-spring-boot-samples</artifactId>
     <version>1.0-SNAPSHOT</version>
 
-    <name>redis-spring-boot-samples</name>
+    <name>sqllite-spring-boot-samples</name>
     <!-- FIXME change it to the project's website -->
     <url>http://www.example.com</url>
 
@@ -36,8 +36,17 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-redis</artifactId>
+            <groupId>org.xerial</groupId>
+            <artifactId>sqlite-jdbc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-boot-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>

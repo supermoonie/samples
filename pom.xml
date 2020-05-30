@@ -17,6 +17,7 @@
         <module>algorithm/algorithm-parent</module>
         <module>patterns/patterns-parent</module>
         <module>springmvc/springmvc-parent</module>
+        <module>sqlite/sqlite-parent</module>
     </modules>
 
 </project>
