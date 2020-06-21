@@ -10,6 +10,7 @@ import org.apache.http.client.fluent.Request;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -20,18 +21,15 @@ import java.util.concurrent.Future;
 public class HcApp {
 
     public static void main(String[] args) throws IOException, ExecutionException, InterruptedException {
-        String result = Request.Get("https://httpbin.org/get")
+        String result = Request.Get("http://127.0.0.1:8080")
+//                .viaProxy("http://127.0.0.1:10801")
                 .setHeader(HttpHeaders.USER_AGENT, "bar")
                 .execute()
-                .handleResponse(new ResponseHandler<String>() {
-            @Override
-            public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
-                return EntityUtils.toString(response.getEntity());
-            }
-        });
+                .handleResponse(response -> {
+                    System.out.println(response.getStatusLine());
+                    System.out.println(Arrays.toString(response.getAllHeaders()));
+                    return EntityUtils.toString(response.getEntity());
+                });
         System.out.println(result);
-        Future<Content> execute = Async.newInstance().execute(Request.Get(""));
-        Content content = Async.newInstance().execute(Request.Get("https://httpbin.org/get")).get();
-        System.out.println(content.asString());
     }
 }

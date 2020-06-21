@@ -18,6 +18,9 @@
         <module>patterns/patterns-parent</module>
         <module>springmvc/springmvc-parent</module>
         <module>sqlite/sqlite-parent</module>
+        <module>security/security-parent</module>
+        <module>netty/netty-parent</module>
+        <module>netty/netty-samples</module>
     </modules>
 
 </project>
