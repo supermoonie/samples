@@ -1,18 +1,22 @@
 package com.github.supermoonie;
 
-import org.apache.http.HttpHeaders;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.fluent.Async;
-import org.apache.http.client.fluent.Content;
-import org.apache.http.client.fluent.Request;
+import org.apache.http.HttpHost;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
-import java.util.Arrays;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 /**
  * @author supermoonie
@@ -20,16 +24,30 @@ import java.util.concurrent.Future;
  */
 public class HcApp {
 
-    public static void main(String[] args) throws IOException, ExecutionException, InterruptedException {
-        String result = Request.Get("http://127.0.0.1:8080")
-//                .viaProxy("http://127.0.0.1:10801")
-                .setHeader(HttpHeaders.USER_AGENT, "bar")
-                .execute()
-                .handleResponse(response -> {
-                    System.out.println(response.getStatusLine());
-                    System.out.println(Arrays.toString(response.getAllHeaders()));
-                    return EntityUtils.toString(response.getEntity());
-                });
-        System.out.println(result);
+    public static void main(String[] args) throws IOException, NoSuchAlgorithmException, KeyManagementException {
+        X509TrustManager trustManager = new X509TrustManager() {
+            @Override
+            public void checkClientTrusted(X509Certificate[] x509Certificates, String s) {
+
+            }
+
+            @Override
+            public void checkServerTrusted(X509Certificate[] x509Certificates, String s) {
+
+            }
+
+            @Override
+            public X509Certificate[] getAcceptedIssuers() {
+                return new X509Certificate[0];
+            }
+        };
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(null, new TrustManager[]{trustManager}, new SecureRandom());
+        CloseableHttpClient httpClient = HttpClientBuilder.create()
+                .setSSLContext(sslContext)
+                .setProxy(new HttpHost("127.0.0.1", 10801))
+                .build();
+        CloseableHttpResponse response = httpClient.execute(new HttpGet("http://httpbinssss.org/get"));
+        System.out.println(EntityUtils.toString(response.getEntity()));
     }
 }

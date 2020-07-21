@@ -21,6 +21,7 @@
         <module>security/security-parent</module>
         <module>netty/netty-parent</module>
         <module>netty/netty-samples</module>
+        <module>bytedeco/bytedeco-parent</module>
     </modules>
 
 </project>
