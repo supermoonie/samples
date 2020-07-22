@@ -20,8 +20,8 @@
         <module>sqlite/sqlite-parent</module>
         <module>security/security-parent</module>
         <module>netty/netty-parent</module>
-        <module>netty/netty-samples</module>
         <module>bytedeco/bytedeco-parent</module>
+        <module>spider/spider-parent</module>
     </modules>
 
 </project>
