@@ -11,13 +11,13 @@ import java.util.List;
 @Data
 public class GeneNameListPage {
 
-    private int pageIndex;
+    private int pageIndex = 0;
 
-    private int totalPage;
+    private int totalPage = 0;
 
-    private int totalCount;
+    private int totalCount = 0;
 
-    private int pageSize;
+    private int pageSize = 0;
 
     private List<GeneName> nameList;
 
