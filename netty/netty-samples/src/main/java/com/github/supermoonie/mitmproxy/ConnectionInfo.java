@@ -1,16 +1,10 @@
 package com.github.supermoonie.mitmproxy;
 
-import io.netty.handler.codec.http.HttpMethod;
-
 /**
  * @author supermoonie
  * @since 2020/8/9
  */
-public class RequestInfo {
-
-    private HttpMethod method;
-
-    private String uri;
+public class ConnectionInfo {
 
     private String remoteHost;
 
@@ -20,23 +14,7 @@ public class RequestInfo {
 
     private int clientPort;
 
-    private boolean isHttps;
-
-    public HttpMethod getMethod() {
-        return method;
-    }
-
-    public void setMethod(HttpMethod method) {
-        this.method = method;
-    }
-
-    public String getUri() {
-        return uri;
-    }
-
-    public void setUri(String uri) {
-        this.uri = uri;
-    }
+    private boolean isHttps = false;
 
     public String getRemoteHost() {
         return remoteHost;
@@ -76,5 +54,16 @@ public class RequestInfo {
 
     public void setHttps(boolean https) {
         isHttps = https;
+    }
+
+    @Override
+    public String toString() {
+        return "ConnectionInfo{" +
+                "remoteHost='" + remoteHost + '\'' +
+                ", remotePort=" + remotePort +
+                ", clientHost='" + clientHost + '\'' +
+                ", clientPort=" + clientPort +
+                ", isHttps=" + isHttps +
+                '}';
     }
 }

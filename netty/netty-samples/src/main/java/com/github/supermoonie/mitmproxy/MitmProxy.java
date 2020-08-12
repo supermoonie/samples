@@ -34,7 +34,7 @@ public class MitmProxy {
     }
 
     public static void main(String[] args) {
-        new MitmProxy(1, 5, 10800).start().close();
+        new MitmProxy(1, 5, 10800).start();
     }
 
     public MitmProxy start() {
@@ -47,7 +47,7 @@ public class MitmProxy {
                         @Override
                         protected void initChannel(Channel ch) throws Exception {
                             ch.pipeline().addLast(HttpServerCodec.class.getSimpleName(), new HttpServerCodec());
-                            ch.pipeline().addLast(MitmProxyCodec.class.getSimpleName(), new MitmProxyCodec());
+                            ch.pipeline().addLast(MitmProxyCodec.class.getSimpleName(), new MitmProxyCodec(null));
                         }
                     }).bind(port).sync();
             return this;

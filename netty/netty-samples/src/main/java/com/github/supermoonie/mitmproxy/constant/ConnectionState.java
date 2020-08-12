@@ -4,25 +4,29 @@ package com.github.supermoonie.mitmproxy.constant;
  * @author supermoonie
  * @since 2020/8/9
  */
-public enum RemoteConnectionState {
+public enum ConnectionState {
 
     /**
      * not connection
      */
     NOT_CONNECTION(0),
     /**
+     * connecting
+     */
+    CONNECTING(1),
+    /**
      * already handshake with client
      */
-    ALREADY_HANDSHAKE_WITH_CLIENT(1),
+    ALREADY_HANDSHAKE_WITH_CLIENT(2),
     /**
      * connected
      */
-    CONNECTED(2)
+    CONNECTED(3)
     ;
 
     private final int code;
 
-    RemoteConnectionState(int code) {
+    ConnectionState(int code) {
         this.code = code;
     }
 

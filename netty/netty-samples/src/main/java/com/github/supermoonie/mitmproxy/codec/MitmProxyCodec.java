@@ -1,15 +1,19 @@
 package com.github.supermoonie.mitmproxy.codec;
 
-import com.github.supermoonie.mitmproxy.RequestInfo;
-import com.github.supermoonie.mitmproxy.constant.RemoteConnectionState;
+import com.github.supermoonie.mitmproxy.ConnectionInfo;
+import com.github.supermoonie.mitmproxy.constant.ConnectionState;
+import com.github.supermoonie.mitmproxy.intercept.MitmProxyIntercept;
+import com.github.supermoonie.mitmproxy.intercept.RealProxyIntercept;
+import com.github.supermoonie.mitmproxy.intercept.context.InterceptContext;
+import com.github.supermoonie.mitmproxy.util.UriUtils;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.*;
+import io.netty.util.ReferenceCountUtil;
 
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 
 /**
  * @author supermoonie
@@ -17,13 +21,16 @@ import java.net.SocketAddress;
  */
 public class MitmProxyCodec extends ChannelInboundHandlerAdapter {
 
-    private RequestInfo requestInfo = new RequestInfo();
+    private static final int SSL_FLAG = 22;
 
-    private RemoteConnectionState state = RemoteConnectionState.NOT_CONNECTION;
+    private ConnectionInfo connectionInfo;
 
-    @Override
-    public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
+    private ConnectionState state = ConnectionState.NOT_CONNECTION;
 
+    private final MitmProxyIntercept intercept;
+
+    public MitmProxyCodec(MitmProxyIntercept intercept) {
+        this.intercept = new RealProxyIntercept(intercept);
     }
 
     @Override
@@ -32,21 +39,65 @@ public class MitmProxyCodec extends ChannelInboundHandlerAdapter {
         InetSocketAddress clientAddress = (InetSocketAddress) clientChannel.remoteAddress();
         String clientHost = clientAddress.getHostString();
         int clientPort = clientAddress.getPort();
-        requestInfo.setClientHost(clientHost);
-        requestInfo.setClientPort(clientPort);
+        System.out.println("clientHost: " + clientHost + ", clientPort: " + clientPort + " connected");
+        connectionInfo = new ConnectionInfo();
+        connectionInfo.setClientHost(clientHost);
+        connectionInfo.setClientPort(clientPort);
     }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        System.out.println("class: " + msg.getClass().getName() + ", msg: " + msg);
+        System.out.println("intercept: " + intercept);
         if (msg instanceof HttpRequest) {
             HttpRequest request = (HttpRequest) msg;
-            HttpMethod method = request.method();
-            requestInfo.setMethod(method);
-            String uri = request.uri();
-            requestInfo.setUri(uri);
-            if (state == RemoteConnectionState.NOT_CONNECTION) {
-
+            ConnectionInfo connectionInfo = UriUtils.parseRemoteInfo(request, this.connectionInfo);
+            if (null == connectionInfo) {
+                ctx.channel().close();
+                return;
             }
+            if (state == ConnectionState.NOT_CONNECTION) {
+                state = ConnectionState.CONNECTING;
+                if (HttpMethod.CONNECT.name().equals(request.method())) {
+                    HttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
+                    ctx.writeAndFlush(response);
+                    ctx.channel().pipeline().remove(HttpServerCodec.class.getSimpleName());
+                    ReferenceCountUtil.release(msg);
+                    state = ConnectionState.ALREADY_HANDSHAKE_WITH_CLIENT;
+                    return;
+                }
+            }
+            String separator = "/";
+            if (request.uri().startsWith(separator)) {
+                request.setUri(connectionInfo.isHttps() ? "https://" : "http://" + request.headers().get(HttpHeaderNames.HOST) + request.uri());
+            }
+            System.out.println("uri: " + request.uri());
+            InterceptContext context = new InterceptContext(ctx.channel(), msg, connectionInfo);
+            doInterceptRequest(context);
+            state = ConnectionState.CONNECTED;
+        } else if (msg instanceof HttpContent) {
+            if (state != ConnectionState.CONNECTED) {
+                InterceptContext context = new InterceptContext(ctx.channel(), msg, connectionInfo);
+                doInterceptRequest(context);
+            } else {
+                ReferenceCountUtil.release(msg);
+                state = ConnectionState.ALREADY_HANDSHAKE_WITH_CLIENT;
+            }
+        } else {
+            ByteBuf byteBuf = (ByteBuf) msg;
+            if (SSL_FLAG == byteBuf.getByte(0)) {
+                connectionInfo.setHttps(true);
+            }
+            InterceptContext context = new InterceptContext(ctx.channel(), msg, connectionInfo);
+            doInterceptRequest(context);
+        }
+    }
+
+    private void doInterceptRequest(InterceptContext context) {
+        MitmProxyIntercept currentIntercept = this.intercept;
+        while (null != currentIntercept) {
+            currentIntercept.onRequest(context);
+            currentIntercept = currentIntercept.next();
         }
     }
 
