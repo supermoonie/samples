@@ -48,7 +48,6 @@ public class MitmProxyCodec extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         System.out.println("class: " + msg.getClass().getName() + ", msg: " + msg);
-        System.out.println("intercept: " + intercept);
         if (msg instanceof HttpRequest) {
             HttpRequest request = (HttpRequest) msg;
             ConnectionInfo connectionInfo = UriUtils.parseRemoteInfo(request, this.connectionInfo);
@@ -58,7 +57,7 @@ public class MitmProxyCodec extends ChannelInboundHandlerAdapter {
             }
             if (state == ConnectionState.NOT_CONNECTION) {
                 state = ConnectionState.CONNECTING;
-                if (HttpMethod.CONNECT.name().equals(request.method())) {
+                if (HttpMethod.CONNECT.equals(request.method())) {
                     HttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
                     ctx.writeAndFlush(response);
                     ctx.channel().pipeline().remove(HttpServerCodec.class.getSimpleName());
