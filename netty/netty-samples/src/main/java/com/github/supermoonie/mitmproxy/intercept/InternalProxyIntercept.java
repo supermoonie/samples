@@ -6,22 +6,31 @@ import com.github.supermoonie.mitmproxy.intercept.context.InterceptContext;
  * @author supermoonie
  * @since 2020/8/11
  */
-public interface MitmProxyIntercept {
+public interface InternalProxyIntercept {
+
+    /**
+     * on active
+     *
+     * @param ctx {@link InterceptContext}
+     */
+    void onActive(InterceptContext ctx);
 
     /**
      * on request
      *
      * @param ctx {@link InterceptContext}
+     * @param msg request msg
      * @return true continue, false break
      */
-    boolean onRequest(InterceptContext ctx);
+    boolean onRequest(InterceptContext ctx, Object msg);
 
     /**
      * on response
      *
      * @param ctx {@link InterceptContext}
+     * @param msg response msg
      */
-    void onResponse(InterceptContext ctx);
+    void onResponse(InterceptContext ctx, Object msg);
 
     /**
      * on exception
@@ -35,7 +44,7 @@ public interface MitmProxyIntercept {
     /**
      * next
      *
-     * @return {@link MitmProxyIntercept}
+     * @return {@link InternalProxyIntercept}
      */
-    MitmProxyIntercept next();
+    InternalProxyIntercept next();
 }

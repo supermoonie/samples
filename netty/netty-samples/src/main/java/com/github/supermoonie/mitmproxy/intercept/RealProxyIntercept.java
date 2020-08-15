@@ -17,17 +17,22 @@ public class RealProxyIntercept extends AbstractIntercept {
 
     private Queue<Object> requestQueue = new LinkedBlockingDeque<>();
 
-    private MitmProxyIntercept next;
+    private InternalProxyIntercept next;
 
     private boolean connectionFlag = false;
 
-    public RealProxyIntercept(MitmProxyIntercept next) {
+    public RealProxyIntercept(InternalProxyIntercept next) {
         this.next = next;
     }
 
     @Override
-    public boolean onRequest(InterceptContext context) {
-        System.out.println("onRequest class: " + context.getRequestMsg().getClass().getName() + ", msg: " + context.getRequestMsg());
+    public void onActive(InterceptContext ctx) {
+
+    }
+
+    @Override
+    public boolean onRequest(InterceptContext context, Object msg) {
+        System.out.println("onRequest class: " + msg.getClass().getName() + ", msg: " + msg);
         if (null == context.getRemoteChannel()) {
             Bootstrap b = new Bootstrap();
             b.group(context.getClientChannel().eventLoop())
@@ -53,8 +58,8 @@ public class RealProxyIntercept extends AbstractIntercept {
             context.setRemoteChannel(remoteChannel);
             f.addListener((ChannelFutureListener) future -> {
                 if (future.isSuccess()) {
-                    System.out.println("send class: " + context.getRequestMsg().getClass().getName() + ", msg: " + context.getRequestMsg());
-                    future.channel().writeAndFlush(context.getRequestMsg());
+                    System.out.println("send class: " + msg.getClass().getName() + ", msg: " + msg);
+                    future.channel().writeAndFlush(msg);
                     Object obj = requestQueue.poll();
                     while (null != obj) {
                         System.out.println("send msg to remote from queue ... class: " + obj.getClass().getName() + " " + obj);
@@ -69,9 +74,9 @@ public class RealProxyIntercept extends AbstractIntercept {
             });
         } else {
             if (connectionFlag) {
-                context.getRemoteChannel().writeAndFlush(context.getRequestMsg());
+                context.getRemoteChannel().writeAndFlush(msg);
             } else {
-                requestQueue.add(context.getRequestMsg());
+                requestQueue.add(msg);
             }
         }
 
@@ -79,7 +84,12 @@ public class RealProxyIntercept extends AbstractIntercept {
     }
 
     @Override
-    public MitmProxyIntercept next() {
+    public void onResponse(InterceptContext ctx, Object msg) {
+
+    }
+
+    @Override
+    public InternalProxyIntercept next() {
         return next;
     }
 }

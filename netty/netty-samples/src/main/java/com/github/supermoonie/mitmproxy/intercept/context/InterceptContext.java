@@ -12,29 +12,22 @@ public class InterceptContext {
     public InterceptContext() {
     }
 
-    public InterceptContext(Channel clientChannel, Object requestMsg, ConnectionInfo currentConnectionInfo) {
+    public InterceptContext(Channel clientChannel, ConnectionInfo currentConnectionInfo) {
         this.clientChannel = clientChannel;
-        this.requestMsg = requestMsg;
         this.currentConnectionInfo = currentConnectionInfo;
     }
 
-    public InterceptContext(Channel clientChannel, Channel remoteChannel, Object requestMsg, ConnectionInfo currentConnectionInfo, Object responseMsg) {
+    public InterceptContext(Channel clientChannel, Channel remoteChannel, ConnectionInfo currentConnectionInfo) {
         this.clientChannel = clientChannel;
         this.remoteChannel = remoteChannel;
-        this.requestMsg = requestMsg;
         this.currentConnectionInfo = currentConnectionInfo;
-        this.responseMsg = responseMsg;
     }
 
     private Channel clientChannel;
 
     private Channel remoteChannel;
 
-    private Object requestMsg;
-
     private ConnectionInfo currentConnectionInfo;
-
-    private Object responseMsg;
 
     public Channel getClientChannel() {
         return clientChannel;
@@ -52,27 +45,11 @@ public class InterceptContext {
         this.remoteChannel = remoteChannel;
     }
 
-    public Object getRequestMsg() {
-        return requestMsg;
-    }
-
-    public void setRequestMsg(Object requestMsg) {
-        this.requestMsg = requestMsg;
-    }
-
     public ConnectionInfo getCurrentConnectionInfo() {
         return currentConnectionInfo;
     }
 
     public void setCurrentConnectionInfo(ConnectionInfo currentConnectionInfo) {
         this.currentConnectionInfo = currentConnectionInfo;
-    }
-
-    public Object getResponseMsg() {
-        return responseMsg;
-    }
-
-    public void setResponseMsg(Object responseMsg) {
-        this.responseMsg = responseMsg;
     }
 }

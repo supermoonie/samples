@@ -1,6 +1,6 @@
 package com.github.supermoonie.mitmproxy;
 
-import com.github.supermoonie.mitmproxy.codec.MitmProxyCodec;
+import com.github.supermoonie.mitmproxy.handler.InternalProxyHandler;
 import com.github.supermoonie.mitmproxy.ex.MitmProxyStartException;
 import com.github.supermoonie.mitmproxy.ex.MtimProxyCloseException;
 import io.netty.bootstrap.ServerBootstrap;
@@ -9,6 +9,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
@@ -17,7 +18,7 @@ import io.netty.handler.logging.LoggingHandler;
  * @author supermoonie
  * @date 2020-08-08
  */
-public class MitmProxy {
+public class InternalProxy {
 
     private final NioEventLoopGroup boss;
 
@@ -27,17 +28,17 @@ public class MitmProxy {
 
     private ChannelFuture future;
 
-    public MitmProxy(int nBoosThread, int nWorkerThread, int port) {
+    public InternalProxy(int nBoosThread, int nWorkerThread, int port) {
         this.boss = new NioEventLoopGroup(nBoosThread);
         this.worker = new NioEventLoopGroup(nWorkerThread);
         this.port = port;
     }
 
     public static void main(String[] args) {
-        new MitmProxy(1, 5, 10800).start();
+        new InternalProxy(1, 5, 10800).start();
     }
 
-    public MitmProxy start() {
+    public InternalProxy start() {
         ServerBootstrap b = new ServerBootstrap();
         try {
             future = b.group(boss, worker)
@@ -47,7 +48,8 @@ public class MitmProxy {
                         @Override
                         protected void initChannel(Channel ch) throws Exception {
                             ch.pipeline().addLast(HttpServerCodec.class.getSimpleName(), new HttpServerCodec());
-                            ch.pipeline().addLast(MitmProxyCodec.class.getSimpleName(), new MitmProxyCodec(null));
+                            ch.pipeline().addLast(new HttpObjectAggregator(512 * 1024));
+                            ch.pipeline().addLast(InternalProxyHandler.class.getSimpleName(), new InternalProxyHandler(null));
                         }
                     }).bind(port).sync();
             return this;

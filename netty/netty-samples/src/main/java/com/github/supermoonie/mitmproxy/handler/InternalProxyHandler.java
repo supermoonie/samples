@@ -1,8 +1,8 @@
-package com.github.supermoonie.mitmproxy.codec;
+package com.github.supermoonie.mitmproxy.handler;
 
 import com.github.supermoonie.mitmproxy.ConnectionInfo;
 import com.github.supermoonie.mitmproxy.constant.ConnectionState;
-import com.github.supermoonie.mitmproxy.intercept.MitmProxyIntercept;
+import com.github.supermoonie.mitmproxy.intercept.InternalProxyIntercept;
 import com.github.supermoonie.mitmproxy.intercept.RealProxyIntercept;
 import com.github.supermoonie.mitmproxy.intercept.context.InterceptContext;
 import com.github.supermoonie.mitmproxy.util.UriUtils;
@@ -19,7 +19,7 @@ import java.net.InetSocketAddress;
  * @author supermoonie
  * @date 2020-08-08
  */
-public class MitmProxyCodec extends ChannelInboundHandlerAdapter {
+public class InternalProxyHandler extends ChannelInboundHandlerAdapter {
 
     private static final int SSL_FLAG = 22;
 
@@ -27,9 +27,9 @@ public class MitmProxyCodec extends ChannelInboundHandlerAdapter {
 
     private ConnectionState state = ConnectionState.NOT_CONNECTION;
 
-    private final MitmProxyIntercept intercept;
+    private final InternalProxyIntercept intercept;
 
-    public MitmProxyCodec(MitmProxyIntercept intercept) {
+    public InternalProxyHandler(InternalProxyIntercept intercept) {
         this.intercept = new RealProxyIntercept(intercept);
     }
 
@@ -71,13 +71,13 @@ public class MitmProxyCodec extends ChannelInboundHandlerAdapter {
                 request.setUri(connectionInfo.isHttps() ? "https://" : "http://" + request.headers().get(HttpHeaderNames.HOST) + request.uri());
             }
             System.out.println("uri: " + request.uri());
-            InterceptContext context = new InterceptContext(ctx.channel(), msg, connectionInfo);
-            doInterceptRequest(context);
+            InterceptContext context = new InterceptContext(ctx.channel(), connectionInfo);
+            doInterceptRequest(context, msg);
             state = ConnectionState.CONNECTED;
         } else if (msg instanceof HttpContent) {
             if (state != ConnectionState.CONNECTED) {
-                InterceptContext context = new InterceptContext(ctx.channel(), msg, connectionInfo);
-                doInterceptRequest(context);
+                InterceptContext context = new InterceptContext(ctx.channel(), connectionInfo);
+                doInterceptRequest(context, msg);
             } else {
                 ReferenceCountUtil.release(msg);
                 state = ConnectionState.ALREADY_HANDSHAKE_WITH_CLIENT;
@@ -87,15 +87,15 @@ public class MitmProxyCodec extends ChannelInboundHandlerAdapter {
             if (SSL_FLAG == byteBuf.getByte(0)) {
                 connectionInfo.setHttps(true);
             }
-            InterceptContext context = new InterceptContext(ctx.channel(), msg, connectionInfo);
-            doInterceptRequest(context);
+            InterceptContext context = new InterceptContext(ctx.channel(), connectionInfo);
+            doInterceptRequest(context, msg);
         }
     }
 
-    private void doInterceptRequest(InterceptContext context) {
-        MitmProxyIntercept currentIntercept = this.intercept;
+    private void doInterceptRequest(InterceptContext context, Object msg) {
+        InternalProxyIntercept currentIntercept = this.intercept;
         while (null != currentIntercept) {
-            currentIntercept.onRequest(context);
+            currentIntercept.onRequest(context, msg);
             currentIntercept = currentIntercept.next();
         }
     }
