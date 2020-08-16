@@ -1,6 +1,5 @@
 package com.github.supermoonie.mitmproxy.intercept;
 
-import com.github.supermoonie.mitmproxy.intercept.context.InterceptContext;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -17,13 +16,7 @@ public class RealProxyIntercept extends AbstractIntercept {
 
     private Queue<Object> requestQueue = new LinkedBlockingDeque<>();
 
-    private InternalProxyIntercept next;
-
     private boolean connectionFlag = false;
-
-    public RealProxyIntercept(InternalProxyIntercept next) {
-        this.next = next;
-    }
 
     @Override
     public void onActive(InterceptContext ctx) {
@@ -41,34 +34,30 @@ public class RealProxyIntercept extends AbstractIntercept {
                         @Override
                         protected void initChannel(Channel ch) throws Exception {
                             ch.pipeline().addLast(HttpClientCodec.class.getName(), new HttpClientCodec());
-                            ch.pipeline().addLast(new ChannelInboundHandlerAdapter(){
+                            ch.pipeline().addLast(new ChannelInboundHandlerAdapter() {
                                 @Override
                                 public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-                                    onResponse(new InterceptContext());
+                                    onResponse(context, msg);
                                     context.getClientChannel().writeAndFlush(msg);
                                 }
                             });
                         }
                     });
-            String remoteHost = context.getCurrentConnectionInfo().getRemoteHost();
-            int port = context.getCurrentConnectionInfo().getRemotePort();
+            String remoteHost = context.getConnectionInfo().getRemoteHost();
+            int port = context.getConnectionInfo().getRemotePort();
             ChannelFuture f = b.connect(remoteHost, port);
-            System.out.println("connect to " + remoteHost + ":" + port);
             Channel remoteChannel = f.channel();
             context.setRemoteChannel(remoteChannel);
             f.addListener((ChannelFutureListener) future -> {
                 if (future.isSuccess()) {
-                    System.out.println("send class: " + msg.getClass().getName() + ", msg: " + msg);
+                    connectionFlag = true;
                     future.channel().writeAndFlush(msg);
                     Object obj = requestQueue.poll();
                     while (null != obj) {
-                        System.out.println("send msg to remote from queue ... class: " + obj.getClass().getName() + " " + obj);
                         future.channel().writeAndFlush(obj);
                         obj = requestQueue.poll();
                     }
-                    connectionFlag = true;
                 } else {
-                    System.out.println("close remote");
                     context.getClientChannel().close();
                 }
             });
@@ -85,11 +74,6 @@ public class RealProxyIntercept extends AbstractIntercept {
 
     @Override
     public void onResponse(InterceptContext ctx, Object msg) {
-
-    }
-
-    @Override
-    public InternalProxyIntercept next() {
-        return next;
+        ctx.getClientChannel().writeAndFlush(msg);
     }
 }

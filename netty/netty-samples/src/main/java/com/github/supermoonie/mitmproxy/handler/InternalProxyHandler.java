@@ -2,10 +2,8 @@ package com.github.supermoonie.mitmproxy.handler;
 
 import com.github.supermoonie.mitmproxy.ConnectionInfo;
 import com.github.supermoonie.mitmproxy.constant.ConnectionState;
-import com.github.supermoonie.mitmproxy.intercept.InternalProxyIntercept;
-import com.github.supermoonie.mitmproxy.intercept.RealProxyIntercept;
-import com.github.supermoonie.mitmproxy.intercept.context.InterceptContext;
-import com.github.supermoonie.mitmproxy.util.UriUtils;
+import com.github.supermoonie.mitmproxy.intercept.*;
+import com.github.supermoonie.mitmproxy.util.RequestUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -23,15 +21,11 @@ public class InternalProxyHandler extends ChannelInboundHandlerAdapter {
 
     private static final int SSL_FLAG = 22;
 
-    private ConnectionInfo connectionInfo;
+    private final InterceptPipeline interceptPipeline = new DefaultInterceptPipeline();
+
+    private final InterceptContext interceptContext = new InterceptContext(interceptPipeline);
 
     private ConnectionState state = ConnectionState.NOT_CONNECTION;
-
-    private final InternalProxyIntercept intercept;
-
-    public InternalProxyHandler(InternalProxyIntercept intercept) {
-        this.intercept = new RealProxyIntercept(intercept);
-    }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
@@ -39,10 +33,13 @@ public class InternalProxyHandler extends ChannelInboundHandlerAdapter {
         InetSocketAddress clientAddress = (InetSocketAddress) clientChannel.remoteAddress();
         String clientHost = clientAddress.getHostString();
         int clientPort = clientAddress.getPort();
-        System.out.println("clientHost: " + clientHost + ", clientPort: " + clientPort + " connected");
-        connectionInfo = new ConnectionInfo();
+        ConnectionInfo connectionInfo = new ConnectionInfo();
         connectionInfo.setClientHost(clientHost);
         connectionInfo.setClientPort(clientPort);
+        interceptContext.setConnectionInfo(connectionInfo);
+        interceptContext.setClientChannel(clientChannel);
+        interceptPipeline.addFirst(new RealProxyIntercept());
+        interceptPipeline.onActive(interceptContext);
     }
 
     @Override
@@ -50,7 +47,7 @@ public class InternalProxyHandler extends ChannelInboundHandlerAdapter {
         System.out.println("class: " + msg.getClass().getName() + ", msg: " + msg);
         if (msg instanceof HttpRequest) {
             HttpRequest request = (HttpRequest) msg;
-            ConnectionInfo connectionInfo = UriUtils.parseRemoteInfo(request, this.connectionInfo);
+            ConnectionInfo connectionInfo = RequestUtils.parseRemoteInfo(request, interceptContext.getConnectionInfo());
             if (null == connectionInfo) {
                 ctx.channel().close();
                 return;
@@ -71,13 +68,11 @@ public class InternalProxyHandler extends ChannelInboundHandlerAdapter {
                 request.setUri(connectionInfo.isHttps() ? "https://" : "http://" + request.headers().get(HttpHeaderNames.HOST) + request.uri());
             }
             System.out.println("uri: " + request.uri());
-            InterceptContext context = new InterceptContext(ctx.channel(), connectionInfo);
-            doInterceptRequest(context, msg);
+            interceptPipeline.onRequest(interceptContext, msg);
             state = ConnectionState.CONNECTED;
         } else if (msg instanceof HttpContent) {
             if (state != ConnectionState.CONNECTED) {
-                InterceptContext context = new InterceptContext(ctx.channel(), connectionInfo);
-                doInterceptRequest(context, msg);
+                interceptPipeline.onRequest(interceptContext, msg);
             } else {
                 ReferenceCountUtil.release(msg);
                 state = ConnectionState.ALREADY_HANDSHAKE_WITH_CLIENT;
@@ -85,18 +80,9 @@ public class InternalProxyHandler extends ChannelInboundHandlerAdapter {
         } else {
             ByteBuf byteBuf = (ByteBuf) msg;
             if (SSL_FLAG == byteBuf.getByte(0)) {
-                connectionInfo.setHttps(true);
+                interceptContext.getConnectionInfo().setHttps(true);
             }
-            InterceptContext context = new InterceptContext(ctx.channel(), connectionInfo);
-            doInterceptRequest(context, msg);
-        }
-    }
-
-    private void doInterceptRequest(InterceptContext context, Object msg) {
-        InternalProxyIntercept currentIntercept = this.intercept;
-        while (null != currentIntercept) {
-            currentIntercept.onRequest(context, msg);
-            currentIntercept = currentIntercept.next();
+            interceptPipeline.onRequest(interceptContext, msg);
         }
     }
 

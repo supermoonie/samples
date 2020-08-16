@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
  * @author supermoonie
  * @since 2020/8/9
  */
-public final class UriUtils {
+public final class RequestUtils {
 
     /**
      * httpbin.org:443
@@ -27,7 +27,7 @@ public final class UriUtils {
 
     private static final Pattern HOST_PORT_PATTERN = Pattern.compile("^(?:https?://)?(?<host>[^:/]*):?(?<port>\\d+)?(?:/.*)?$");
 
-    private UriUtils() {
+    private RequestUtils() {
     }
 
     public static int tryParsePort(String uri) {

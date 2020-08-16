@@ -1,8 +1,8 @@
 package com.github.supermoonie.mitmproxy;
 
 import com.github.supermoonie.mitmproxy.handler.InternalProxyHandler;
-import com.github.supermoonie.mitmproxy.ex.MitmProxyStartException;
-import com.github.supermoonie.mitmproxy.ex.MtimProxyCloseException;
+import com.github.supermoonie.mitmproxy.ex.InternalProxyStartException;
+import com.github.supermoonie.mitmproxy.ex.InternalProxyCloseException;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -49,14 +49,14 @@ public class InternalProxy {
                         protected void initChannel(Channel ch) throws Exception {
                             ch.pipeline().addLast(HttpServerCodec.class.getSimpleName(), new HttpServerCodec());
                             ch.pipeline().addLast(new HttpObjectAggregator(512 * 1024));
-                            ch.pipeline().addLast(InternalProxyHandler.class.getSimpleName(), new InternalProxyHandler(null));
+                            ch.pipeline().addLast(InternalProxyHandler.class.getSimpleName(), new InternalProxyHandler());
                         }
                     }).bind(port).sync();
             return this;
         } catch (InterruptedException e) {
             worker.shutdownGracefully();
             boss.shutdownGracefully();
-            throw new MitmProxyStartException(e);
+            throw new InternalProxyStartException(e);
         }
     }
 
@@ -65,7 +65,7 @@ public class InternalProxy {
             try {
                 future.channel().close().sync();
             } catch (InterruptedException e) {
-                throw new MtimProxyCloseException(e);
+                throw new InternalProxyCloseException(e);
             } finally {
                 worker.shutdownGracefully();
                 boss.shutdownGracefully();

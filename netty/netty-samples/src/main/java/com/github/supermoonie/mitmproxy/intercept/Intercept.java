@@ -1,12 +1,10 @@
 package com.github.supermoonie.mitmproxy.intercept;
 
-import com.github.supermoonie.mitmproxy.intercept.context.InterceptContext;
-
 /**
  * @author supermoonie
  * @since 2020/8/11
  */
-public interface InternalProxyIntercept {
+public interface Intercept {
 
     /**
      * on active
@@ -40,11 +38,4 @@ public interface InternalProxyIntercept {
      * @throws Throwable t
      */
     void onException(InterceptContext ctx, Throwable cause) throws Throwable;
-
-    /**
-     * next
-     *
-     * @return {@link InternalProxyIntercept}
-     */
-    InternalProxyIntercept next();
 }

@@ -1,33 +1,41 @@
 package com.github.supermoonie.mitmproxy.intercept;
 
-import com.github.supermoonie.mitmproxy.intercept.context.InterceptContext;
-
 /**
  * @author supermoonie
  * @since 2020/8/12
  */
-public abstract class AbstractIntercept implements InternalProxyIntercept {
+public abstract class AbstractIntercept implements Intercept {
+
+    AbstractIntercept pre;
+
+    AbstractIntercept next;
 
     @Override
-    public boolean onRequest(InterceptContext ctx) {
-        InternalProxyIntercept intercept = next();
-        if (null != intercept) {
-            return intercept.onRequest(ctx);
+    public void onActive(InterceptContext ctx) {
+        if (null != next) {
+            next.onActive(ctx);
+        }
+    }
+
+    @Override
+    public boolean onRequest(InterceptContext ctx, Object msg) {
+        if (null != next) {
+            return next.onRequest(ctx, msg);
         }
         return true;
     }
 
     @Override
-    public void onResponse(InterceptContext ctx) {
-        InternalProxyIntercept intercept = next();
+    public void onResponse(InterceptContext ctx, Object msg) {
+        Intercept intercept = next;
         if (null != intercept) {
-            intercept.onResponse(ctx);
+            intercept.onResponse(ctx, msg);
         }
     }
 
     @Override
     public void onException(InterceptContext ctx, Throwable cause) throws Throwable {
-        InternalProxyIntercept intercept = next();
+        Intercept intercept = next;
         if (null != intercept) {
             intercept.onException(ctx, cause);
         }
