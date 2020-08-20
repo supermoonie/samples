@@ -10,19 +10,20 @@ import io.netty.handler.logging.LoggingHandler;
 
 /**
  * @author supermoonie
- * @since 2020/8/8
+ * @date 2020-08-07
  */
 public class HexDumpProxy {
 
     public static void main(String[] args) throws InterruptedException {
-        EventLoopGroup boss = new NioEventLoopGroup(1);
-        EventLoopGroup worker = new NioEventLoopGroup(5);
+        EventLoopGroup bossGroup = new NioEventLoopGroup(1);
+        EventLoopGroup workerGroup = new NioEventLoopGroup(5);
         ServerBootstrap b = new ServerBootstrap();
-        ChannelFuture f = b.group(boss, worker)
+        ChannelFuture f = b.group(bossGroup, workerGroup)
                 .channel(NioServerSocketChannel.class)
                 .handler(new LoggingHandler(LogLevel.INFO))
                 .childHandler(new HexDumpProxyInitializer())
-                .bind(10802);
-        f.sync().channel().closeFuture().sync();
+                .bind(10802).sync();
+        System.out.println("listening on " + 10802);
+        f.channel().closeFuture().sync();
     }
 }
