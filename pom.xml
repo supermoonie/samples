@@ -22,6 +22,7 @@
         <module>netty/netty-parent</module>
         <module>bytedeco/bytedeco-parent</module>
         <module>spider/spider-parent</module>
+        <module>javafx/javafx-samples</module>
     </modules>
 
 </project>
