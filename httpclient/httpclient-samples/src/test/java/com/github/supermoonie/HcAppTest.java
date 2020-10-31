@@ -1,7 +1,6 @@
 package com.github.supermoonie;
 
 import org.junit.Test;
-import sun.misc.BASE64Encoder;
 
 import java.io.FileInputStream;
 import java.security.KeyStore;
@@ -10,6 +9,7 @@ import java.security.PublicKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.Base64;
 import java.util.Enumeration;
 
 /**
@@ -19,18 +19,17 @@ import java.util.Enumeration;
 public class HcAppTest {
 
     @Test
-    public void test() throws Exception{
+    public void test() throws Exception {
         CertificateFactory cf = CertificateFactory.getInstance("X.509");
         X509Certificate cert = (X509Certificate) cf.generateCertificate(new FileInputStream("D:\\cert\\cert.crt"));
         PublicKey publicKey = cert.getPublicKey();
-        BASE64Encoder base64Encoder = new BASE64Encoder();
-        String publicKeyString = base64Encoder.encode(publicKey.getEncoded());
+        Base64.Encoder encoder = Base64.getEncoder();
+        String publicKeyString = encoder.encodeToString(publicKey.getEncoded());
         System.out.println("-----------------公钥--------------------");
         System.out.println(publicKeyString);
         System.out.println("-----------------公钥--------------------");
 
-        try
-        {
+        try {
             KeyStore keyStore = KeyStore.getInstance("PKCS12");
             FileInputStream fileInputStream = new FileInputStream("D:\\cert\\cert.cert");
             char[] nPassword = null;
@@ -40,9 +39,8 @@ public class HcAppTest {
 
             Enumeration<String> enumeration = keyStore.aliases();
 
-            if (enumeration.hasMoreElements())
-            {
-                String keyAlias =  enumeration.nextElement();
+            if (enumeration.hasMoreElements()) {
+                String keyAlias = enumeration.nextElement();
                 System.out.println("alias=[" + keyAlias + "]");
             }
             System.out.println("is key entry=" + keyStore.isKeyEntry(""));
@@ -54,8 +52,7 @@ public class HcAppTest {
             System.out.println("public key = " + certPublicKey);
             System.out.println("private key = " + privateKey);
 
-        } catch (Exception e)
-        {
+        } catch (Exception e) {
             System.out.println(e);
         }
     }
