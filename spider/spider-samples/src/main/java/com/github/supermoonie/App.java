@@ -6,6 +6,7 @@ import cn.hutool.core.net.URLEncoder;
 import cn.hutool.json.JSONUtil;
 import cn.hutool.poi.excel.BigExcelWriter;
 import cn.hutool.poi.excel.ExcelUtil;
+import org.apache.http.HttpHost;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -39,35 +40,27 @@ public class App {
 
     private final static String UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.89 Safari/537.36 Edg/84.0.522.40";
 
-    private final static String DEFAULT_URL = "http://www.ricedata.cn/ontology/default.aspx";
+    private final static String DEFAULT_URL = "https://www.ricedata.cn/ontology/default.aspx";
 
-    private final static String SEARCH_URL = "http://www.ricedata.cn/ontology/default.aspx";
+    private final static String SEARCH_URL = "https://www.ricedata.cn/ontology/default.aspx";
 
     private final static BasicCookieStore BASIC_COOKIE_STORE = new BasicCookieStore();
 
     private static final List<String> KW_LIST = new ArrayList<>();
 
     static {
-        KW_LIST.add("叶宽");
-        KW_LIST.add("叶长");
-        KW_LIST.add("卷叶");
-        KW_LIST.add("叶倾角");
-        KW_LIST.add("叶夹角");
-        KW_LIST.add("节间长度");
-        KW_LIST.add("茎秆长度");
-        KW_LIST.add("茎直径");
-        KW_LIST.add("茎粗");
-        KW_LIST.add("茎厚");
-        KW_LIST.add("茎秆机械强度");
-        KW_LIST.add("穗伸出度");
-        KW_LIST.add("叶绿素含量");
+        KW_LIST.add("粒形");
+        KW_LIST.add("籽粒长宽比");
+        KW_LIST.add("糙米长宽比");
+        KW_LIST.add("粒宽");
+        KW_LIST.add("粒长");
     }
 
     public static void main(String[] args) {
-
         HttpClientBuilder httpClientBuilder = HttpClientUtils.createTrustAllHttpClientBuilder();
         httpClientBuilder.setDefaultCookieStore(BASIC_COOKIE_STORE);
         httpClientBuilder.setRedirectStrategy(new LaxRedirectStrategy());
+        httpClientBuilder.setProxy(new HttpHost("localhost", 8888));
         try (CloseableHttpClient httpClient = httpClientBuilder.build()) {
             DefaultPageResult defaultPageResult = getAndParseDefault(httpClient);
             List<GeneInfo> geneInfos = new ArrayList<>();
@@ -89,7 +82,7 @@ public class App {
                         geneInfo.setGeneEnName(geneName.getEnName());
                         geneInfo.setGeneZhName(geneName.getZhName());
                         geneInfo.setLoginNo(searchResult.getLoginNo());
-                        Pair<Integer, String> posPair = positionInfo(httpClient, geneName.getUrl(), "http://www.ricedata.cn/ontology/ontolists.aspx?db=gene&ta=" + searchResult.getLoginNo());
+                        Pair<Integer, String> posPair = positionInfo(httpClient, geneName.getUrl(), "https://www.ricedata.cn/ontology/ontolists.aspx?db=gene&ta=" + searchResult.getLoginNo());
                         geneInfo.setChromosome(posPair.getKey() == -1 ? "未定位" : String.valueOf(posPair.getKey()));
                         geneInfo.setPosition(posPair.getValue());
                         System.out.println(geneInfo);
@@ -103,7 +96,7 @@ public class App {
                             geneInfo.setGeneEnName(geneName.getEnName());
                             geneInfo.setGeneZhName(geneName.getZhName());
                             geneInfo.setLoginNo(searchResult.getLoginNo());
-                            Pair<Integer, String> posPair = positionInfo(httpClient, geneName.getUrl(), "http://www.ricedata.cn/ontology/ontolists.aspx?db=gene&ta=" + searchResult.getLoginNo());
+                            Pair<Integer, String> posPair = positionInfo(httpClient, geneName.getUrl(), "https://www.ricedata.cn/ontology/ontolists.aspx?db=gene&ta=" + searchResult.getLoginNo());
                             geneInfo.setChromosome(posPair.getKey() == -1 ? "未定位" : String.valueOf(posPair.getKey()));
                             geneInfo.setPosition(posPair.getValue());
                             System.out.println(geneInfo);
@@ -112,7 +105,7 @@ public class App {
                     }
                 }
             }
-            BigExcelWriter bigWriter = ExcelUtil.getBigWriter(new File("C:\\Users\\wangc\\Desktop\\data_0.xlsx"));
+            BigExcelWriter bigWriter = ExcelUtil.getBigWriter(new File("C:\\Users\\super_w\\Desktop\\data_0.xlsx"));
             List<List<String>> rows = new ArrayList<>();
             rows.add(List.of("登录号", "特征", "基因英文名", "基因中文名", "所在染色体", "基因所在位置"));
             for (GeneInfo info : geneInfos) {
@@ -144,7 +137,7 @@ public class App {
     private static List<SearchResult> search(CloseableHttpClient httpClient, DefaultPageResult defaultPageResult) throws IOException {
         HttpPost httpPost = new HttpPost(SEARCH_URL);
         httpPost.setHeader("User-Agent", UA);
-        httpPost.setHeader("Referer", "http://www.ricedata.cn/ontology/default.aspx");
+        httpPost.setHeader("Referer", "https://www.ricedata.cn/ontology/default.aspx");
         List<NameValuePair> paramList = new ArrayList<>();
         paramList.add(new BasicNameValuePair("__VIEWSTATE", defaultPageResult.getViewState()));
         paramList.add(new BasicNameValuePair("__VIEWSTATEGENERATOR", defaultPageResult.getViewStateGenerator()));
@@ -163,7 +156,7 @@ public class App {
                 Elements cols = row.getElementsByTag("td");
                 SearchResult result = new SearchResult();
                 result.setLoginNo(cols.get(1).text());
-                result.setLoginNoUrl("http://www.ricedata.cn/ontology/" + cols.get(1).attr("href"));
+                result.setLoginNoUrl("https://www.ricedata.cn/ontology/" + cols.get(1).attr("href"));
                 result.setName(cols.get(2).text());
                 resultList.add(result);
             }
@@ -172,9 +165,9 @@ public class App {
     }
 
     private static GeneNameListPage geneList(CloseableHttpClient httpClient, int pageIndex, String dbName, String loginNo) throws IOException {
-        HttpGet httpGet = new HttpGet(String.format("http://www.ricedata.cn/ontology/ontolists.aspx?p=%d&db=%s&ta=%s", pageIndex, dbName, loginNo));
+        HttpGet httpGet = new HttpGet(String.format("https://www.ricedata.cn/ontology/ontolists.aspx?p=%d&db=%s&ta=%s", pageIndex, dbName, loginNo));
         httpGet.setHeader("User-Agent", UA);
-        httpGet.setHeader("Referer", String.format("http://www.ricedata.cn/ontology/ontolists.aspx?db=%s&ta=%s", dbName, loginNo));
+        httpGet.setHeader("Referer", String.format("https://www.ricedata.cn/ontology/ontolists.aspx?db=%s&ta=%s", dbName, loginNo));
         try (CloseableHttpResponse pageRes = httpClient.execute(httpGet)) {
             GeneNameListPage page = new GeneNameListPage();
             page.setPageIndex(pageIndex);
@@ -196,10 +189,10 @@ public class App {
             page.setTotalCount(Integer.parseInt(bs.get(0).text()));
             page.setPageSize(Integer.parseInt(bs.get(1).text()));
             Elements as = first.getElementsByTag("a");
-            if (as.size() == 0) {
+            if (as.size() == 0 || as.size() == 1) {
                 page.setTotalPage(1);
             } else {
-                page.setTotalPage(Integer.parseInt(as.last().text()));
+                page.setTotalPage(Integer.parseInt(as.get(as.size() - 3).text()));
             }
             List<GeneName> nameList = new ArrayList<>();
             for (int i = 2; i < rows.size(); i ++) {
@@ -214,7 +207,7 @@ public class App {
                 Elements cols = row.getElementsByTag("td");
                 geneName.setEnName(cols.first().text());
                 geneName.setZhName(cols.get(1).text());
-                geneName.setUrl("http://www.ricedata.cn" + row.getElementsByTag("a").first().attr("href").replace("..", ""));
+                geneName.setUrl("https://www.ricedata.cn" + row.getElementsByTag("a").first().attr("href").replace("..", ""));
                 nameList.add(geneName);
             }
             page.setNameList(nameList);
@@ -251,7 +244,7 @@ public class App {
             String position = "无";
             for (Element a : as) {
                 if (a.text().contains("本地")) {
-                    String positionUrl = "http://www.ricedata.cn/gene/" + a.attr("href").replace("..", "");
+                    String positionUrl = "https://www.ricedata.cn/gene/" + a.attr("href").replace("..", "");
                     HttpGet posGet = new HttpGet(positionUrl);
                     posGet.setHeader("User-Agent", UA);
                     posGet.setHeader("Referer", url);

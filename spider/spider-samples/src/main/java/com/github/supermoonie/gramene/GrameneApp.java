@@ -4,6 +4,7 @@ import cn.hutool.poi.excel.BigExcelWriter;
 import cn.hutool.poi.excel.ExcelReader;
 import cn.hutool.poi.excel.ExcelUtil;
 import com.github.supermoonie.HttpClientUtils;
+import org.apache.http.HttpHost;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.BasicCookieStore;
@@ -40,22 +41,20 @@ public class GrameneApp {
     private static final List<String> KW_LIST = new ArrayList<>();
 
     static {
-        KW_LIST.add("leaf+angle");
-        KW_LIST.add("leaf+area");
-        KW_LIST.add("leaf+length");
-        KW_LIST.add("leaf+rolling");
-        KW_LIST.add("leaf+width");
-        KW_LIST.add("culm+length");
-        KW_LIST.add("culm+strength");
-        KW_LIST.add("culm+thickness");
-        KW_LIST.add("cholorophyll+content");
-        KW_LIST.add("internode+length");
+        KW_LIST.add("grain+width");
+        KW_LIST.add("seed+width");
+        KW_LIST.add("grain+length");
+        KW_LIST.add("seed+length");
+        KW_LIST.add("grain+length+to+width+ratio");
+        KW_LIST.add("seed+length+to+width+ratio");
+        KW_LIST.add("seed+shape");
     }
 
     public static void main(String[] args) {
         HttpClientBuilder httpClientBuilder = HttpClientUtils.createTrustAllHttpClientBuilder();
         httpClientBuilder.setDefaultCookieStore(BASIC_COOKIE_STORE);
         httpClientBuilder.setRedirectStrategy(new LaxRedirectStrategy());
+        httpClientBuilder.setProxy(new HttpHost("127.0.0.1", 7890));
         try (CloseableHttpClient httpClient = httpClientBuilder.build()) {
             // step 1
 //            getAllDetailUrl(httpClient);
@@ -68,7 +67,7 @@ public class GrameneApp {
     }
 
     private static void getDetail(CloseableHttpClient httpClient) {
-        ExcelReader reader = ExcelUtil.getReader(new File("C:\\Users\\wangc\\Desktop\\data_1.xlsx"));
+        ExcelReader reader = ExcelUtil.getReader(new File("C:\\Users\\super_w\\Desktop\\data_1.xlsx"));
         int rowCount = reader.getRowCount();
         List<GrameneInfo> infoList = new ArrayList<>();
         for (int i = 0; i < rowCount; i ++) {
@@ -109,7 +108,7 @@ public class GrameneApp {
                 e.printStackTrace();
             }
         }
-        BigExcelWriter bigWriter = ExcelUtil.getBigWriter(new File("C:\\Users\\wangc\\Desktop\\data_2.xlsx"));
+        BigExcelWriter bigWriter = ExcelUtil.getBigWriter(new File("C:\\Users\\super_w\\Desktop\\data_2.xlsx"));
         bigWriter.write(infoList);
         bigWriter.close();
     }
@@ -137,7 +136,7 @@ public class GrameneApp {
                 }
             }
         }
-        BigExcelWriter bigWriter = ExcelUtil.getBigWriter(new File("C:\\Users\\wangc\\Desktop\\data_1.xlsx"));
+        BigExcelWriter bigWriter = ExcelUtil.getBigWriter(new File("C:\\Users\\super_w\\Desktop\\data_1.xlsx"));
         bigWriter.write(detailUrlList);
         bigWriter.close();
     }

@@ -1,7 +1,6 @@
 package com.github.supermoonie;
 
 import java.util.Arrays;
-import java.util.Random;
 
 /**
  * @author supermoonie
@@ -9,57 +8,30 @@ import java.util.Random;
  */
 public class QuickSort {
 
+    public void sort(int[] arr, int left, int right) {
+        if (left < right) {
+            int pivot = arr[left];
+            int low = left;
+            int high = right;
+            while (low < high) {
+                while (low < high && arr[high] >= pivot) {
+                    high--;
+                }
+                arr[low] = arr[high];
+                while (low < high && arr[low] <= pivot) {
+                    low++;
+                }
+                arr[high] = arr[low];
+            }
+            arr[low] = pivot;
+            sort(arr, left, low - 1);
+            sort(arr, low + 1, right);
+        }
+    }
+
     public static void main(String[] args) {
-        Random random = new Random();
-        int[] randoms = random.ints(10, 1, 100).distinct().toArray();
-        System.out.println(Arrays.toString(randoms));
-        sort(randoms, 0, randoms.length - 1);
-        System.out.println(Arrays.toString(randoms));
-    }
-
-    private static void sort(int[] list, int low, int high) {
-        if (low >= high) {
-            return;
-        }
-        int pa = partition_1(list, low, high);
-        sort(list, low, pa - 1);
-        sort(list, pa + 1, high);
-    }
-
-    private static int partition_1(int[] list, int low, int high) {
-        int pivot = list[high];
-        int i = low - 1;
-        for (int j = low; j < high; j ++) {
-            if (list[j] <= pivot) {
-                i += 1;
-                swap(list, i, j);
-            }
-        }
-        swap(list, i + 1, high);
-        return i + 1;
-    }
-
-    private static void swap(int[] list, int i, int j) {
-        int temp = list[i];
-        list[i] = list[j];
-        list[j] = temp;
-    }
-
-    private static int partition(int[] list, int low, int high) {
-        int pivot = list[low];
-        int start = low;
-        int end = high;
-        while (start < end) {
-            while (start < end && list[start] >= pivot) {
-                start += 1;
-            }
-            list[end] = list[start];
-            while (start < end && list[end] >= pivot) {
-                end -= 1;
-            }
-            list[start] = list[end];
-        }
-        list[start] = pivot;
-        return start;
+        int[] arr = new int[]{1, 100, 2, 200, 3, 300};
+        new QuickSort().sort(arr, 0, arr.length - 1);
+        System.out.println(Arrays.toString(arr));
     }
 }
