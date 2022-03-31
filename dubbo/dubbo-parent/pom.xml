@@ -28,7 +28,7 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <java.verison>1.8</java.verison>
-        <spring-boot-version>2.1.5.RELEASE</spring-boot-version>
+        <spring-boot-version>2.5.12</spring-boot-version>
         <dubbo.version>2.7.5</dubbo.version>
         <zookeeper.version>3.4.6</zookeeper.version>
     </properties>
